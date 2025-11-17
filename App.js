@@ -23,26 +23,34 @@ export default function App() {
     try {
       const token = await SecureStore.getItemAsync('userToken');
       if (token) {
-        const hasHardware = await LocalAuthentication.hasHardwareAsync();
-        if (hasHardware) {
-          const result = await LocalAuthentication.authenticateAsync({
-            promptMessage: 'Authenticate to access POWER PLAY',
-            fallbackLabel: 'Use Passcode',
-          });
-          setIsAuthenticated(result.success);
-        } else {
+        try {
+          const hasHardware = await LocalAuthentication.hasHardwareAsync();
+          if (hasHardware) {
+            const result = await LocalAuthentication.authenticateAsync({
+              promptMessage: 'Authenticate to access POWER PLAY',
+              fallbackLabel: 'Use Passcode',
+            });
+            setIsAuthenticated(result.success);
+          } else {
+            setIsAuthenticated(true);
+          }
+        } catch (error) {
+          // Biometric not available, allow access
           setIsAuthenticated(true);
         }
+      } else {
+        setIsAuthenticated(false);
       }
     } catch (error) {
       console.error('Authentication error:', error);
+      setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
     }
   };
 
   if (isLoading) {
-    return null; // Or a splash screen component
+    return null;
   }
 
   return (
